@@ -44,7 +44,7 @@ func (r *RedisInFlightStorageAndQueue) Add(message string, timeout time.Duration
 func (r *RedisInFlightStorageAndQueue) addMessageInProcessing(message string, timeout time.Duration, key uuid.UUID) {
 	r.Engine.Set(r.Context, fmt.Sprint(key.String(), TypeMessage), message, DefaultMessageTimeout)
 
-	r.Engine.Set(r.Context, fmt.Sprint(key.String(), TypeDuration), time.Now().Add(timeout).Format(time.DateTime), DefaultMessageTimeout)
+	r.Engine.Set(r.Context, fmt.Sprint(key.String(), TypeDuration), time.Now().Add(timeout).Format(time.RFC3339Nano), DefaultMessageTimeout)
 }
 
 func (r *RedisInFlightStorageAndQueue) Get(key uuid.UUID) (message string, timeout time.Time, empty bool, er error) {
@@ -70,7 +70,7 @@ func (r *RedisInFlightStorageAndQueue) getMessageInProcessing(key uuid.UUID) (me
 		return
 	}
 
-	timeout, err3 := time.Parse(time.DateTime, timeoutString)
+	timeout, err3 := time.Parse(time.RFC3339Nano, timeoutString)
 	if err3 != nil {
 		err = err3
 		return
@@ -96,7 +96,7 @@ func (r *RedisInFlightStorageAndQueue) GetAndDeleteExpiredKeys() chan QueueMessa
 				continue
 			}
 
-			messageTimeoutTime, err := time.Parse(time.DateTime, string(timeoutAsString))
+			messageTimeoutTime, err := time.Parse(time.RFC3339Nano, string(timeoutAsString))
 
 			if messageTimeoutTime.After(time.Now()) {
 				continue
