@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/altieresdelsent/BBQueue/queue"
+	"github.com/altieresdelsent/BBQueue/stressTest"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
@@ -40,8 +41,13 @@ func init() {
 }
 
 func main() {
-	router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
 	setupEndpoints(router)
+	go func() {
+		time.Sleep(time.Second * 3)
+		stressTest.StressTestPost()
+	}()
 	err := router.Run(":8080")
 	if err != nil {
 		return
