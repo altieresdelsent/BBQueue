@@ -2,9 +2,10 @@ package main
 
 import (
 	"github.com/altieresdelsent/BBQueue/queue"
-	"github.com/altieresdelsent/BBQueue/stressTest"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"io"
 	"net/http"
 	"strconv"
@@ -34,6 +35,7 @@ func init() {
 	go func() {
 		for {
 			bbQueue.ReAddExpiredKeys()
+			//TODO: create variable and move it to a config file
 			time.Sleep(time.Second)
 		}
 	}()
@@ -44,26 +46,27 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	setupEndpoints(router)
-	go func() {
-		time.Sleep(time.Second * 3)
-		stressTest.StressTestPost()
-	}()
-
-	go func() {
-		time.Sleep(time.Second * 2)
-		stressTest.StressTestGetAndDelete()
-	}()
+	//go func() {
+	//	time.Sleep(time.Second * 3)
+	//	stressTest.StressTestPost()
+	//}()
+	//
+	//go func() {
+	//	time.Sleep(time.Second * 2)
+	//	stressTest.StressTestGetAndDelete()
+	//}()
 	err := router.Run(":8080")
 	if err != nil {
 		return
 	}
 }
 
-func setupEndpoints(server *gin.Engine) {
-	server.GET("/queue", serverGet)
-	server.POST("/queue", serverPost)
-	server.DELETE("/queue/:key", serverDelete)
-	server.GET("/queue/:key", serverGetKey)
+func setupEndpoints(RestApi *gin.Engine) {
+	RestApi.GET("/queue", serverGet)
+	RestApi.POST("/queue", serverPost)
+	RestApi.DELETE("/queue/:key", serverDelete)
+	RestApi.GET("/queue/:key", serverGetKey)
+	RestApi.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }
 
 func serverGet(c *gin.Context) {
