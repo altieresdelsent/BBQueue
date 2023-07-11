@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "github.com/altieresdelsent/BBQueue/docs"
 	"github.com/altieresdelsent/BBQueue/queue"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
