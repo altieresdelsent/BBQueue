@@ -2,151 +2,203 @@
 
 package docs
 
-import (
-	"github.com/swaggo/swag"
-)
+import "github.com/swaggo/swag"
 
-const docTemplate = `
-{
+const docTemplate = `{
+    "schemes": {{ marshal .Schemes }},
     "swagger": "2.0",
     "info": {
-        "title": "BBQueue",
-        "description": "A simple queue service",
-        "version": "1.0.0"
+        "description": "{{escape .Description}}",
+        "title": "{{.Title}}",
+        "contact": {},
+        "version": "{{.Version}}"
     },
-    "host": "127.0.0.1:8080",
-    "basePath": "/",
-    "schemes": [
-        "http"
-    ],
+    "host": "{{.Host}}",
+    "basePath": "{{.BasePath}}",
     "paths": {
-        "/queue": {
+        "/processing/{key}": {
             "get": {
-                "summary": "Get the first message in the queue",
-                "description": "Returns the first message in the front of the queue, including the timeout the message can stay in processing in seconds.",
+                "description": "Gets the message from the in-processing with the same key as the one passed on the requested URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Get a specific message",
                 "parameters": [
                     {
-                        "name": "Timeout-Key",
-                        "in": "header",
-                        "description": "Timeout in seconds",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int32"
+                        "type": "string",
+                        "description": "Key of the message to return",
+                        "name": "key",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Ok"
-                    },
-                    "400": {
-                        "description": "Bad Request"
+                        "description": "Ok",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     "204": {
-                        "description": "Queue is empty"
+                        "description": "Queue is empty",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Key not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a message with the same key as the one passed on the requested URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Delete a specific message",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Key of the message to delete",
+                        "name": "key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Message deleted successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Key not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error deleting message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/queue": {
+            "get": {
+                "description": "Returns the first message in the front of the queue, including the timeout the message can stay in processing in seconds.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Get the first message in the queue",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Timeout in seconds",
+                        "name": "Timeout-Key",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "204": {
+                        "description": "Queue is empty",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 }
             },
             "post": {
-                "summary": "Add a message to the queue",
                 "description": "Adds the message contained on the body of the request to the end of the queue.",
                 "consumes": [
                     "application/json"
                 ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Add a message to the queue",
                 "parameters": [
                     {
+                        "description": "Message to add to the queue",
                         "name": "message",
                         "in": "body",
-                        "description": "Message to add to the queue",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/Message"
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "message added successfully"
+                        "description": "Message added successfully",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     "500": {
-                        "description": "Failed to read request body"
+                        "description": "Failed to read request body",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
-                }
-            }
-        },
-        "/queue/{key}": {
-            "get": {
-                "summary": "Get a specific message",
-                "description": "Gets the message with the same key as the one on the requested URL.",
-                "parameters": [
-                    {
-                        "name": "key",
-                        "in": "path",
-                        "description": "Key of the message to return",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Ok"
-                    },
-                    "404": {
-                        "description": "Key not found"
-                    },
-                    "204": {
-                        "description": "Queue is empty"
-                    }
-                }
-            },
-            "delete": {
-                "summary": "Delete a specific message",
-                "description": "Deletes a message with the same key as the one passed on the requested URL",
-                "parameters": [
-                    {
-                        "name": "key",
-                        "in": "path",
-                        "description": "Key of the message to delete",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "message deleted successfully"
-                    },
-                    "404": {
-                        "description": "Key not found"
-                    },
-                    "500": {
-                        "description": "Error deleting message"
-                    }
-                }
-            }
-        }
-    },
-    "definitions": {
-        "Message": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
                 }
             }
         }
     }
-}
-`
+}`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "",
+	Host:             "127.0.0.1:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "BBQueue",
-	Description:      "",
+	Title:            "BBQueue API",
+	Description:      "A simple queue service",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {
