@@ -11,7 +11,7 @@ func GetPayload() (int, string) {
 	// Make HTTP request
 	req, err := http.NewRequest(http.MethodGet, endPoint, nil)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error GetPayload NewRequest:", err)
 		return http.StatusExpectationFailed, ""
 	}
 
@@ -23,7 +23,7 @@ func GetPayload() (int, string) {
 	client := http.DefaultClient
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error GetPayload client.Do:", err)
 		return http.StatusExpectationFailed, ""
 	}
 	defer resp.Body.Close()

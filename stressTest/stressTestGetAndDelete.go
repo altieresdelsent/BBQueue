@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const parallelCountProcessing = 3000
+const parallelCountProcessing = 20000
 const requestPerParallelProcessing = ((parallelCount * requestPerParallel) / parallelCountProcessing) + 1
 
 func StressTestGetAndDelete() {
@@ -47,7 +47,7 @@ func StressTestGetAndDelete() {
 				if statusCodeGET > 300 {
 					errorCount <- 1
 				}
-				time.Sleep(time.Duration(1 + rand.Intn(timeoutQueueSeconds-4)))
+				time.Sleep(time.Second * time.Duration(1+rand.Intn(timeoutQueueSeconds-4)))
 				statusCodeDELETE := DeletePayload(key)
 				if statusCodeDELETE > 300 {
 					errorCount <- 1

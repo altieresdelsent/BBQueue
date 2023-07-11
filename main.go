@@ -23,6 +23,7 @@ const (
 )
 
 func init() {
+	http.DefaultTransport.(*http.Transport).MaxIdleConnsPerHost = 100
 	redisInstance = &queue.RedisInFlightStorageAndQueue{}
 	err := redisInstance.Init()
 	if err != nil {
@@ -43,10 +44,10 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	setupEndpoints(router)
-	//go func() {
-	//	time.Sleep(time.Second * 3)
-	//	stressTest.StressTestPost()
-	//}()
+	go func() {
+		time.Sleep(time.Second * 3)
+		stressTest.StressTestPost()
+	}()
 
 	go func() {
 		time.Sleep(time.Second * 2)
