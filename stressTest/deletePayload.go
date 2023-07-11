@@ -1,25 +1,14 @@
 package stressTest
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-const endPoint = "http://127.0.0.1:8080/queue"
-
-func PostRandomPayload() int {
-	payload := generateRandomPayload()
-	// Convert payload to JSON
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return http.StatusExpectationFailed
-	}
+func DeletePayload(key string) int {
 
 	// Make HTTP request
-	req, err := http.NewRequest(http.MethodPost, endPoint, bytes.NewBuffer(payloadBytes))
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprint(endPoint, "/", key), nil)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return http.StatusExpectationFailed

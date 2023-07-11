@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/altieresdelsent/BBQueue/queue"
 	"github.com/altieresdelsent/BBQueue/stressTest"
 	"github.com/gin-gonic/gin"
@@ -27,7 +26,7 @@ func init() {
 	redisInstance = &queue.RedisInFlightStorageAndQueue{}
 	err := redisInstance.Init()
 	if err != nil {
-		fmt.Println("Error starting redis")
+		panic("Error starting redis")
 		return
 	}
 	bbQueue = queue.NewExtraQueue(redisInstance, redisInstance)
@@ -44,9 +43,14 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	setupEndpoints(router)
+	//go func() {
+	//	time.Sleep(time.Second * 3)
+	//	stressTest.StressTestPost()
+	//}()
+
 	go func() {
-		time.Sleep(time.Second * 3)
-		stressTest.StressTestPost()
+		time.Sleep(time.Second * 2)
+		stressTest.StressTestGetAndDelete()
 	}()
 	err := router.Run(":8080")
 	if err != nil {
