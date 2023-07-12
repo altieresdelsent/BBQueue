@@ -48,7 +48,7 @@ func (receiver *ExtraQueue) GetInProcessing(key uuid.UUID) (message string, time
 	return receiver.processing.Get(key)
 }
 
-func (receiver *ExtraQueue) Delete(key uuid.UUID) error {
+func (receiver *ExtraQueue) Delete(key uuid.UUID) (bool, error) {
 	return receiver.processing.Delete(key)
 }
 
@@ -71,6 +71,6 @@ type NormalQueue interface {
 type InFlightStorage interface {
 	Add(message string, timeout time.Duration) uuid.UUID
 	GetAndDeleteExpiredKeys() chan QueueMessage
-	Delete(key uuid.UUID) error
+	Delete(key uuid.UUID) (bool, error)
 	Get(key uuid.UUID) (string, time.Time, bool, error)
 }

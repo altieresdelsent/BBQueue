@@ -3,6 +3,7 @@ package main
 import (
 	_ "github.com/altieresdelsent/BBQueue/docs"
 	"github.com/altieresdelsent/BBQueue/queue"
+	"github.com/altieresdelsent/BBQueue/stressTest"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	swaggerfiles "github.com/swaggo/files"
@@ -52,19 +53,23 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	setupEndpoints(router)
-	//go func() {
-	//	time.Sleep(time.Second * 3)
-	//	stressTest.StressTestPost()
-	//}()
-	//
-	//go func() {
-	//	time.Sleep(time.Second * 2)
-	//	stressTest.StressTestGetAndDelete()
-	//}()
+	//stressTestAllOperations()
 	err := router.Run(":8080")
 	if err != nil {
 		return
 	}
+}
+
+func stressTestAllOperations() {
+	go func() {
+		time.Sleep(time.Second * 3)
+		stressTest.StressTestPost()
+	}()
+
+	go func() {
+		time.Sleep(time.Second * 2)
+		stressTest.StressTestGetAndDelete()
+	}()
 }
 
 func setupEndpoints(RestApi *gin.Engine) {
@@ -132,15 +137,20 @@ func serverPost(c *gin.Context) {
 // @produce json
 // @param key path string true "Key of the message to delete"
 // @success 200 {string} string "Message deleted successfully"
-// @failure 404 {string} string "Key not found"
+// @failure 204 {string} string "Key not found"
+// @failure 400 {string} string "Key is not in UUID format"
 // @failure 500 {string} string "Error deleting message"
 // @router /processing/{key} [delete]
 func serverDelete(c *gin.Context) {
 	key, err := uuid.Parse(c.Param("key"))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	err = bbQueue.Delete(key)
+	empty, err := bbQueue.Delete(key)
+	if empty {
+		c.Data(http.StatusNoContent, contentTypeJSON, []byte(""))
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}

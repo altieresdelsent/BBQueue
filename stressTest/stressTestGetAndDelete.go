@@ -3,6 +3,7 @@ package stressTest
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -27,9 +28,12 @@ func StressTestGetAndDelete() {
 			totalTasksProcessed += taskCountItem
 		}
 	}()
-
+	endPartialResultsLoop := false
 	go func() {
 		for i := 0; i < 100000; i++ {
+			if endPartialResultsLoop == true {
+				break
+			}
 			fmt.Println("Report number:", i)
 			fmt.Println("Partial errors:", totalErrors)
 			fmt.Println("Partial tasksProcessed:", totalTasksProcessed)
@@ -44,6 +48,9 @@ func StressTestGetAndDelete() {
 		go func() {
 			for i := 0; i < requestPerParallelProcessing; i++ {
 				statusCodeGET, key := GetPayload()
+				if statusCodeGET == http.StatusNoContent {
+					continue
+				}
 				if statusCodeGET > 300 {
 					errorCount <- 1
 				}
@@ -68,6 +75,7 @@ func StressTestGetAndDelete() {
 	close(markAsFinished)
 	close(errorCount)
 	close(taskCount)
+	endPartialResultsLoop = true
 
 	fmt.Println("Total errors:", totalErrors)
 	fmt.Println("Total tasksProcessed:", totalTasksProcessed)

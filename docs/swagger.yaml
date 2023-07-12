@@ -1,0 +1,128 @@
+basePath: /
+host: 127.0.0.1:8080
+info:
+  contact: {}
+  description: A simple queue service
+  title: BBQueue API
+  version: "1.0"
+paths:
+  /processing/{key}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a message with the same key as the one passed on the requested
+        URL
+      parameters:
+      - description: Key of the message to delete
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Message deleted successfully
+          schema:
+            type: string
+        "204":
+          description: Key not found
+          schema:
+            type: string
+        "400":
+          description: Key is not in UUID format
+          schema:
+            type: string
+        "500":
+          description: Error deleting message
+          schema:
+            type: string
+      summary: Delete a specific message
+      tags:
+      - Queue
+    get:
+      consumes:
+      - application/json
+      description: Gets the message from the in-processing with the same key as the
+        one passed on the requested URL
+      parameters:
+      - description: Key of the message to return
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ok
+          schema:
+            type: string
+        "204":
+          description: Queue is empty
+          schema:
+            type: string
+        "404":
+          description: Key not found
+          schema:
+            type: string
+      summary: Get a specific message
+      tags:
+      - Queue
+  /queue:
+    get:
+      consumes:
+      - application/json
+      description: Returns the first message in the front of the queue, including
+        the timeout the message can stay in processing in seconds.
+      parameters:
+      - description: Timeout in seconds
+        in: header
+        name: Timeout-Key
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ok
+          schema:
+            type: string
+        "204":
+          description: Queue is empty
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Get the first message in the queue
+      tags:
+      - Queue
+    post:
+      consumes:
+      - application/json
+      description: Adds the message contained on the body of the request to the end
+        of the queue.
+      parameters:
+      - description: Message to add to the queue
+        in: body
+        name: message
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Message added successfully
+          schema:
+            type: string
+        "500":
+          description: Failed to read request body
+          schema:
+            type: string
+      summary: Add a message to the queue
+      tags:
+      - Queue
+swagger: "2.0"

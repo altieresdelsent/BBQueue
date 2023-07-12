@@ -6,10 +6,12 @@ import (
 	"time"
 )
 
+const endPointProcessing = "http://127.0.0.1:8080/processing"
+
 func DeletePayload(key string) int {
 
 	// Make HTTP request
-	req, err := http.NewRequest(http.MethodDelete, fmt.Sprint(endPoint, "/", key), nil)
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprint(endPointProcessing, "/", key), nil)
 	if err != nil {
 		fmt.Println("Error DeletePayload NewRequest:", err)
 		return http.StatusExpectationFailed

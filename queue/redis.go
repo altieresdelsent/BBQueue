@@ -123,8 +123,12 @@ func (r *RedisInFlightStorageAndQueue) GetAndDeleteExpiredKeys() chan QueueMessa
 	return results
 }
 
-func (r *RedisInFlightStorageAndQueue) Delete(key uuid.UUID) error {
-	return r.Engine.Del(r.Context, fmt.Sprint(key.String(), TypeMessage), fmt.Sprint(key.String(), TypeDuration)).Err()
+func (r *RedisInFlightStorageAndQueue) Delete(key uuid.UUID) (bool, error) {
+	err := r.Engine.Del(r.Context, fmt.Sprint(key.String(), TypeMessage), fmt.Sprint(key.String(), TypeDuration)).Err()
+	if err == redis.Nil {
+		return true, nil
+	}
+	return false, err
 }
 
 func (r *RedisInFlightStorageAndQueue) Push(message string) error {

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-const endPoint = "http://127.0.0.1:8080/queue"
+const endPointQueue = "http://127.0.0.1:8080/queue"
 
 func PostRandomPayload() int {
 	payload := generateRandomPayload()
@@ -19,7 +19,7 @@ func PostRandomPayload() int {
 	}
 
 	// Make HTTP request
-	req, err := http.NewRequest(http.MethodPost, endPoint, bytes.NewBuffer(payloadBytes))
+	req, err := http.NewRequest(http.MethodPost, endPointQueue, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		fmt.Println("Error:", err)
 		return http.StatusExpectationFailed

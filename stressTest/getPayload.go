@@ -9,7 +9,7 @@ const timeoutQueueSeconds = 30
 
 func GetPayload() (int, string) {
 	// Make HTTP request
-	req, err := http.NewRequest(http.MethodGet, endPoint, nil)
+	req, err := http.NewRequest(http.MethodGet, endPointQueue, nil)
 	if err != nil {
 		fmt.Println("Error GetPayload NewRequest:", err)
 		return http.StatusExpectationFailed, ""

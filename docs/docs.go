@@ -87,8 +87,14 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
-                    "404": {
+                    "204": {
                         "description": "Key not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Key is not in UUID format",
                         "schema": {
                             "type": "string"
                         }
