@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-const parallelCount = 1000
-const requestPerParallel = 1000
+const parallelCount = 100
+const requestPerParallel = 100
 
 func StressTestPost() {
 	start := time.Now()

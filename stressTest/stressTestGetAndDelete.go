@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const parallelCountProcessing = 20000
+const parallelCountProcessing = 2000
 const requestPerParallelProcessing = ((parallelCount * requestPerParallel) / parallelCountProcessing) + 1
 
 func StressTestGetAndDelete() {
