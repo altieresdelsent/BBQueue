@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"log"
 	"strings"
 	"time"
 )
@@ -81,46 +82,47 @@ func (r *RedisInFlightStorageAndQueue) getMessageInProcessing(key uuid.UUID) (me
 func (r *RedisInFlightStorageAndQueue) GetAndDeleteExpiredKeys() chan QueueMessage {
 	results := make(chan QueueMessage)
 	go func() {
-		allKeys, _ := r.Engine.Keys(r.Context, fmt.Sprint("*", TypeDuration)).Result()
+		allKeysDuration, _ := r.Engine.Keys(r.Context, fmt.Sprint("*", TypeDuration)).Result()
 		defer close(results)
-		for _, key := range allKeys {
-			keyUUID, err := uuid.Parse(strings.TrimSuffix(key, TypeDuration))
-
-			timeoutAsString, err := r.Engine.Get(r.Context, key).Bytes()
-			if err == redis.Nil {
-				r.Engine.Del(r.Context, fmt.Sprint(keyUUID.String(), TypeMessage), fmt.Sprint(keyUUID.String(), TypeDuration))
-				continue
-			}
-			if err != nil {
-				r.Engine.Del(r.Context, fmt.Sprint(keyUUID.String(), TypeMessage), fmt.Sprint(keyUUID.String(), TypeDuration))
-				continue
-			}
-
-			messageTimeoutTime, err := time.Parse(time.RFC3339Nano, string(timeoutAsString))
-
-			if messageTimeoutTime.After(time.Now()) {
-				continue
-			}
-
-			message, err := r.Engine.Get(r.Context, fmt.Sprint(keyUUID.String(), TypeMessage)).Bytes()
-			if err == redis.Nil {
-				r.Engine.Del(r.Context, fmt.Sprint(keyUUID.String(), TypeMessage), fmt.Sprint(keyUUID.String(), TypeDuration))
-				continue
-			}
-			if err != nil {
-				r.Engine.Del(r.Context, fmt.Sprint(keyUUID.String(), TypeMessage), fmt.Sprint(keyUUID.String(), TypeDuration))
-				continue
-			}
-
-			r.Engine.Del(r.Context, fmt.Sprint(keyUUID.String(), TypeMessage), fmt.Sprint(keyUUID.String(), TypeDuration))
-			results <- QueueMessage{
-				Key:     keyUUID,
-				Message: string(message),
+		for _, keyDuration := range allKeysDuration {
+			keyUUID, message, expired := r.deleteKeyIfExpired(keyDuration)
+			if expired {
+				_, _ = r.Delete(keyUUID)
+				results <- QueueMessage{
+					Key:     keyUUID,
+					Message: message,
+				}
 			}
 		}
-
 	}()
 	return results
+}
+
+func (r *RedisInFlightStorageAndQueue) deleteKeyIfExpired(keyDuration string) (key uuid.UUID, message string, expired bool) {
+	key, err := uuid.Parse(strings.TrimSuffix(keyDuration, TypeDuration))
+	if err != nil {
+		log.Println("key was stored, but not in UUID format:", key)
+		return
+	}
+
+	timeoutAsString, err := r.Engine.Get(r.Context, keyDuration).Bytes()
+	if err != nil {
+		_, _ = r.Delete(key)
+		return
+	}
+
+	messageTimeoutTime, err := time.Parse(time.RFC3339Nano, string(timeoutAsString))
+
+	if messageTimeoutTime.After(time.Now()) {
+		return
+	}
+
+	messageBytes, err := r.Engine.Get(r.Context, fmt.Sprint(key.String(), TypeMessage)).Bytes()
+	if err != nil {
+		_, _ = r.Delete(key)
+		return
+	}
+	return key, string(messageBytes), true
 }
 
 func (r *RedisInFlightStorageAndQueue) Delete(key uuid.UUID) (bool, error) {
